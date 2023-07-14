@@ -11,11 +11,11 @@ function App() {
 
     React.useEffect(() => {
         axios.get('http://localhost:3000/dev/study/fdf95e5f-e8db-4726-8588-0b55754e0ea2?status=created').then((response) => {
-            console.log(response.data)
             setStudies(response.data);
-        })
+        }).catch((error) => {
+            console.log(error);
+        });
     }, [fileChange]);
-    console.log(selectedStudy)
   return (
     <div className="App">
       <header className="App-header">
@@ -26,8 +26,8 @@ function App() {
             <div>
                 <ul>
                     {studies.length > 0 ? studies.map(study => (
-                        <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', color: study.sortKey === selectedStudy.sortKey ? "green" : "white"}}>
-                            <li key={study.id} style={{paddingRight: "10px"}}>{`${study.id}, ${study.sortKey}, ${study.samplesName}`}</li>
+                        <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', color: study.sortKey === selectedStudy?.sortKey ? "green" : "white"}}>
+                            <li key={study.id} style={{paddingRight: "10px"}}>{`${study.id}, ${study.sortKey}, - ${study.samplesName}`}</li>
                             <button onClick={() => {setSelectedStudy(study);}}>
                                 Select for Upload
                             </button>

@@ -1,10 +1,15 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import axios from 'axios';
+import { ProgressBar } from 'react-bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const FILE_CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB
 const path = 'http://localhost:3000/dev/study/';
 const FileUpload = (props: {setFileChange: any, id: string, name: string, disabled: boolean}) => {
-    console.log(props)
+    useEffect(() => {
+        setUploadProgress(0);
+    }, [props.id]);
+
     const containerStyle: React.CSSProperties = {
         display: 'flex',
         alignItems: 'center',
@@ -31,6 +36,8 @@ const FileUpload = (props: {setFileChange: any, id: string, name: string, disabl
 
     const [file, setFile] = useState<File|null>(null);
 
+    const [uploadProgress, setUploadProgress] = useState(0);
+
     //@ts-ignore
     const handleFileChange = (e) => {
         setFile(e.target.files[0]);
@@ -43,13 +50,13 @@ const FileUpload = (props: {setFileChange: any, id: string, name: string, disabl
         // Get the total number of parts
         const totalParts = Math.ceil(file.size / FILE_CHUNK_SIZE);
 
-        console.log(file.name)
-
         // Request the backend to initiate the multipart upload and get the UploadId
         const { data: { uploadId, preSignedUrls } } = await axios.post(path + `${props.id}/${props.name}/initiate-samples-upload`, {
             fileName: file.name,
             totalParts,
         });
+
+        let uploadedPartsCount = 0; // Track the number of uploaded parts
 
         const uploadPartPromises = preSignedUrls.map(async (url: string, i: number) => {
             const start = i * FILE_CHUNK_SIZE;
@@ -60,27 +67,45 @@ const FileUpload = (props: {setFileChange: any, id: string, name: string, disabl
                 headers: { 'Content-Type': file.type },
             });
 
+            uploadedPartsCount++;
+
+            const overallProgress = Math.round((uploadedPartsCount / totalParts) * 100);
+            setUploadProgress(overallProgress);
+
             return { PartNumber: i + 1, ETag: etag };
         });
 
         const uploadedParts = await Promise.all(uploadPartPromises);
-        console.log(props.id)
-        console.log(props.name)
+
+
+
         // Complete the multipart upload
         await axios.post(path + `${props.id}/${props.name}/complete-samples-upload`, {
             fileName: file.name,
             uploadId,
             parts: uploadedParts,
+            size: file.size * 10**-6,
         });
         props.setFileChange(true);
     };
 
     return (
-        <div style={containerStyle}>
-            <input type="file" onChange={handleFileChange} style={inputStyle} />
-            <button onClick={handleUpload} style={buttonStyle} disabled={props.disabled}>Upload</button>
-        </div>
+        <p style={{display: "flex", flexDirection: "column"}}>
+            <div style={containerStyle}>
+                <input type="file" onChange={handleFileChange} style={inputStyle} />
+                <button onClick={handleUpload} style={buttonStyle} disabled={props.disabled}>Upload</button>
+            </div>
+            <div>
+                <ProgressBar
+                    now={uploadProgress}
+                    label={`${uploadProgress}%`}
+                    variant="success"
+                    style={{ backgroundColor: 'white' }}
+                />
+            </div>
+        </p>
     );
+
 };
 
 export default FileUpload;
