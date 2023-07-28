@@ -4,8 +4,10 @@ import { ProgressBar } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const FILE_CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB
-const path = 'http://localhost:3000/dev/study/';
+const path = process.env.REACT_APP_BACKEND_URL || 'no url found';
 const FileUpload = (props: {setFileChange: any, id: string, name: string, disabled: boolean}) => {
+    const [uploading, setUploading] = useState<boolean>(false);
+
     useEffect(() => {
         setUploadProgress(0);
     }, [props.id]);
@@ -47,6 +49,9 @@ const FileUpload = (props: {setFileChange: any, id: string, name: string, disabl
         if (!file) {
             return;
         }
+
+        setUploading(true);
+
         // Get the total number of parts
         const totalParts = Math.ceil(file.size / FILE_CHUNK_SIZE);
 
@@ -87,13 +92,14 @@ const FileUpload = (props: {setFileChange: any, id: string, name: string, disabl
             size: file.size * 10**-6,
         });
         props.setFileChange(true);
+        setUploading(false);
     };
 
     return (
         <p style={{display: "flex", flexDirection: "column"}}>
             <div style={containerStyle}>
                 <input type="file" onChange={handleFileChange} style={inputStyle} />
-                <button onClick={handleUpload} style={buttonStyle} disabled={props.disabled}>Upload</button>
+                <button onClick={handleUpload} style={buttonStyle} disabled={props.disabled || uploading}>Upload</button>
             </div>
             <div>
                 <ProgressBar
