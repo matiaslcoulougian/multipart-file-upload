@@ -24,7 +24,7 @@ function App() {
     const [reloadStudies, setReloadStudies] = React.useState<boolean>(false);
 
     React.useEffect(() => {
-        axios.get(url + '0681ebe4-54f7-4f8b-a5c1-f659022a8f76?status=CREATED').then((response) => {
+        axios.get(url + '0681ebe4-54f7-4f8b-a5c1-f659022a8f76').then((response) => {
             setStudies(response.data);
         }).catch((error) => {
             console.log(error);
@@ -44,7 +44,7 @@ function App() {
                 <ul>
                     {studies.length > 0 ? studies.map(study => (
                         <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', color: study.sortKey === selectedStudy?.sortKey ? "green" : "white"}}>
-                            <li key={study.id} style={{paddingRight: "10px"}}>{`${study.id}, ${study.sortKey}, - ${study.samplesName}`}</li>
+                            <li key={study.id} style={{paddingRight: "10px"}}>{`${study.sortKey} - ${study.name} - ${study.samplesName}`}</li>
                             <button onClick={() => {setSelectedStudy(study);}}>
                                 Select for Upload
                             </button>
@@ -52,7 +52,7 @@ function App() {
                     )) : <div>No studies found. Create one first.</div>}
                 </ul>
             </div>
-          <FileUpload {...{setFileChange, id: selectedStudy?.id, name: selectedStudy?.name, disabled: !selectedStudy}}/>
+          <FileUpload {...{setFileChange, userId: selectedStudy?.userId, studyId: selectedStudy?.sortKey?.split('#')[1], disabled: !selectedStudy}}/>
       </header>
     </div>
   );

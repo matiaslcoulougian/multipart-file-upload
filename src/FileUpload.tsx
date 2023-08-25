@@ -5,12 +5,12 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 const FILE_CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB
 const path = process.env.REACT_APP_BACKEND_URL || 'no url found';
-const FileUpload = (props: {setFileChange: any, id: string, name: string, disabled: boolean}) => {
+const FileUpload = (props: {setFileChange: any, userId: string, studyId: string, disabled: boolean}) => {
     const [uploading, setUploading] = useState<boolean>(false);
 
     useEffect(() => {
         setUploadProgress(0);
-    }, [props.id]);
+    }, [props.studyId]);
 
     const containerStyle: React.CSSProperties = {
         display: 'flex',
@@ -56,7 +56,7 @@ const FileUpload = (props: {setFileChange: any, id: string, name: string, disabl
         const totalParts = Math.ceil(file.size / FILE_CHUNK_SIZE);
 
         // Request the backend to initiate the multipart upload and get the UploadId
-        const { data: { uploadId, preSignedUrls } } = await axios.post(path + `${props.id}/${props.name}/initiate-samples-upload`, {
+        const { data: { uploadId, preSignedUrls } } = await axios.post(path + `${props.userId}/${props.studyId}/initiate-samples-upload`, {
             fileName: file.name,
             totalParts,
         });
@@ -85,7 +85,7 @@ const FileUpload = (props: {setFileChange: any, id: string, name: string, disabl
 
 
         // Complete the multipart upload
-        await axios.post(path + `${props.id}/${props.name}/complete-samples-upload`, {
+        await axios.post(path + `${props.userId}/${props.studyId}/complete-samples-upload`, {
             fileName: file.name,
             uploadId,
             parts: uploadedParts,
